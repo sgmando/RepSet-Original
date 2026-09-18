@@ -190,53 +190,52 @@ public class MainActivity extends Activity {
         LinearLayout repsCard = compactStatCard("REPS");
         repsValue = (TextView) repsCard.getChildAt(1);
 
-        LinearLayout.LayoutParams leftStat = new LinearLayout.LayoutParams(0, dp(66), 1f);
+        LinearLayout.LayoutParams leftStat = new LinearLayout.LayoutParams(0, dp(78), 1f);
         leftStat.rightMargin = dp(5);
         stats.addView(setsCard, leftStat);
 
-        LinearLayout.LayoutParams rightStat = new LinearLayout.LayoutParams(0, dp(66), 1f);
+        LinearLayout.LayoutParams rightStat = new LinearLayout.LayoutParams(0, dp(78), 1f);
         rightStat.leftMargin = dp(5);
         stats.addView(repsCard, rightStat);
         root.addView(stats, fullWrap());
 
         root.addView(space(8));
 
-        TextView repButton = bigButton("+  REP", RED, WHITE, dp(1), 34);
+        LinearLayout topRow = new LinearLayout(this);
+        topRow.setOrientation(LinearLayout.HORIZONTAL);
+        topRow.setWeightSum(2f);
+
+        TextView setButton = bigButton("+  SET", RED_DARK, WHITE, dp(84), 18);
+        setButton.setOnClickListener(v -> {
+            sets++;
+            saveAndRefresh("Set +1");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams setLp = new LinearLayout.LayoutParams(0, dp(84), 0.8f);
+        setLp.rightMargin = dp(5);
+        topRow.addView(setButton, setLp);
+
+        TextView repButton = bigButton("+  REP", RED, WHITE, dp(84), 28);
         repButton.setOnClickListener(v -> {
             reps++;
             saveAndRefresh("Rep +1");
             haptic(v);
         });
-        LinearLayout.LayoutParams repLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        repLp.bottomMargin = dp(8);
-        root.addView(repButton, repLp);
+        LinearLayout.LayoutParams repLp = new LinearLayout.LayoutParams(0, dp(84), 1.2f);
+        repLp.leftMargin = dp(5);
+        topRow.addView(repButton, repLp);
+        root.addView(topRow, fullWrap());
 
-        LinearLayout primary = new LinearLayout(this);
-        primary.setOrientation(LinearLayout.HORIZONTAL);
-        primary.setWeightSum(2f);
+        root.addView(space(8));
 
-        TextView completeButton = outlinedButton("COMPLETE SET", RED, WHITE, dp(74), 18);
+        TextView completeButton = outlinedButton("COMPLETE SET", RED, WHITE, dp(72), 20);
         completeButton.setOnClickListener(v -> {
             sets++;
             reps = 0;
             saveAndRefresh("Set logged • reps reset");
             haptic(v);
         });
-        LinearLayout.LayoutParams completeLp = new LinearLayout.LayoutParams(0, dp(74), 1.15f);
-        completeLp.rightMargin = dp(5);
-        primary.addView(completeButton, completeLp);
-
-        TextView setButton = bigButton("+  SET", RED_DARK, WHITE, dp(74), 19);
-        setButton.setOnClickListener(v -> {
-            sets++;
-            saveAndRefresh("Set +1");
-            haptic(v);
-        });
-        LinearLayout.LayoutParams setLp = new LinearLayout.LayoutParams(0, dp(74), 0.85f);
-        setLp.leftMargin = dp(5);
-        primary.addView(setButton, setLp);
-        root.addView(primary, fullWrap());
+        root.addView(completeButton, fullWrap());
 
         root.addView(space(8));
 
@@ -250,7 +249,7 @@ public class MainActivity extends Activity {
             saveAndRefresh("Rep −1");
             haptic(v);
         });
-        LinearLayout.LayoutParams minusRepLp = new LinearLayout.LayoutParams(0, dp(50), 1f);
+        LinearLayout.LayoutParams minusRepLp = new LinearLayout.LayoutParams(0, dp(48), 1f);
         minusRepLp.rightMargin = dp(4);
         bottom.addView(minusRep, minusRepLp);
 
@@ -260,7 +259,7 @@ public class MainActivity extends Activity {
             saveAndRefresh("Set −1");
             haptic(v);
         });
-        LinearLayout.LayoutParams minusSetLp = new LinearLayout.LayoutParams(0, dp(50), 1f);
+        LinearLayout.LayoutParams minusSetLp = new LinearLayout.LayoutParams(0, dp(48), 1f);
         minusSetLp.leftMargin = dp(4);
         minusSetLp.rightMargin = dp(4);
         bottom.addView(minusSet, minusSetLp);
@@ -271,7 +270,7 @@ public class MainActivity extends Activity {
         reset.setClickable(true);
         reset.setFocusable(true);
         reset.setOnClickListener(v -> confirmReset());
-        LinearLayout.LayoutParams resetLp = new LinearLayout.LayoutParams(0, dp(50), 1.1f);
+        LinearLayout.LayoutParams resetLp = new LinearLayout.LayoutParams(0, dp(48), 1.1f);
         resetLp.leftMargin = dp(4);
         bottom.addView(reset, resetLp);
 
@@ -285,14 +284,14 @@ public class MainActivity extends Activity {
         card.setGravity(Gravity.CENTER);
         card.setBackground(roundRect(CARD, dp(16), Color.rgb(44, 44, 44), dp(1)));
 
-        TextView labelView = text(label, 12, MUTED, Typeface.BOLD);
+        TextView labelView = text(label, 13, MUTED, Typeface.BOLD);
         labelView.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         labelLp.rightMargin = dp(8);
         card.addView(labelView, labelLp);
 
-        TextView value = text("0", 36, WHITE, Typeface.BOLD);
+        TextView value = text("0", 42, WHITE, Typeface.BOLD);
         value.setGravity(Gravity.CENTER);
         card.addView(value, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -300,7 +299,7 @@ public class MainActivity extends Activity {
     }
 
     private TextView compactSmallButton(String label) {
-        TextView button = text(label, 14, WHITE, Typeface.BOLD);
+        TextView button = text(label, 13, WHITE, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
         button.setBackground(roundRect(CARD_2, dp(14), Color.rgb(58, 58, 58), dp(1)));
         button.setClickable(true);
