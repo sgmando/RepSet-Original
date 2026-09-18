@@ -7,10 +7,13 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Space;
@@ -36,6 +39,7 @@ public class MainActivity extends Activity {
     private TextView setsValue;
     private TextView repsValue;
     private TextView statusText;
+    private boolean compactMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +52,14 @@ public class MainActivity extends Activity {
         sets = prefs.getInt(KEY_SETS, 0);
         reps = prefs.getInt(KEY_REPS, 0);
 
-        setContentView(buildUi());
+        compactMode = isCompactDisplay();
+        if (compactMode) enableCompactFullscreen();
+
+        setContentView(compactMode ? buildCompactUi() : buildFullUi());
         refresh();
     }
 
-    private View buildUi() {
+    private View buildFullUi() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(18), dp(18), dp(18), dp(18));
@@ -167,6 +174,174 @@ public class MainActivity extends Activity {
         return root;
     }
 
+    private View buildCompactUi() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(10), dp(10), dp(10), dp(10));
+        root.setBackgroundColor(BLACK);
+        root.setFitsSystemWindows(true);
+
+        LinearLayout stats = new LinearLayout(this);
+        stats.setOrientation(LinearLayout.HORIZONTAL);
+        stats.setWeightSum(2f);
+
+        LinearLayout setsCard = compactStatCard("SETS");
+        setsValue = (TextView) setsCard.getChildAt(1);
+        LinearLayout repsCard = compactStatCard("REPS");
+        repsValue = (TextView) repsCard.getChildAt(1);
+
+        LinearLayout.LayoutParams leftStat = new LinearLayout.LayoutParams(0, dp(66), 1f);
+        leftStat.rightMargin = dp(5);
+        stats.addView(setsCard, leftStat);
+
+        LinearLayout.LayoutParams rightStat = new LinearLayout.LayoutParams(0, dp(66), 1f);
+        rightStat.leftMargin = dp(5);
+        stats.addView(repsCard, rightStat);
+        root.addView(stats, fullWrap());
+
+        root.addView(space(8));
+
+        TextView repButton = bigButton("+  REP", RED, WHITE, dp(1), 34);
+        repButton.setOnClickListener(v -> {
+            reps++;
+            saveAndRefresh("Rep +1");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams repLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        repLp.bottomMargin = dp(8);
+        root.addView(repButton, repLp);
+
+        LinearLayout primary = new LinearLayout(this);
+        primary.setOrientation(LinearLayout.HORIZONTAL);
+        primary.setWeightSum(2f);
+
+        TextView completeButton = outlinedButton("COMPLETE SET", RED, WHITE, dp(74), 18);
+        completeButton.setOnClickListener(v -> {
+            sets++;
+            reps = 0;
+            saveAndRefresh("Set logged • reps reset");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams completeLp = new LinearLayout.LayoutParams(0, dp(74), 1.15f);
+        completeLp.rightMargin = dp(5);
+        primary.addView(completeButton, completeLp);
+
+        TextView setButton = bigButton("+  SET", RED_DARK, WHITE, dp(74), 19);
+        setButton.setOnClickListener(v -> {
+            sets++;
+            saveAndRefresh("Set +1");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams setLp = new LinearLayout.LayoutParams(0, dp(74), 0.85f);
+        setLp.leftMargin = dp(5);
+        primary.addView(setButton, setLp);
+        root.addView(primary, fullWrap());
+
+        root.addView(space(8));
+
+        LinearLayout bottom = new LinearLayout(this);
+        bottom.setOrientation(LinearLayout.HORIZONTAL);
+        bottom.setWeightSum(3.1f);
+
+        TextView minusRep = compactSmallButton("− REP");
+        minusRep.setOnClickListener(v -> {
+            if (reps > 0) reps--;
+            saveAndRefresh("Rep −1");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams minusRepLp = new LinearLayout.LayoutParams(0, dp(50), 1f);
+        minusRepLp.rightMargin = dp(4);
+        bottom.addView(minusRep, minusRepLp);
+
+        TextView minusSet = compactSmallButton("− SET");
+        minusSet.setOnClickListener(v -> {
+            if (sets > 0) sets--;
+            saveAndRefresh("Set −1");
+            haptic(v);
+        });
+        LinearLayout.LayoutParams minusSetLp = new LinearLayout.LayoutParams(0, dp(50), 1f);
+        minusSetLp.leftMargin = dp(4);
+        minusSetLp.rightMargin = dp(4);
+        bottom.addView(minusSet, minusSetLp);
+
+        TextView reset = text("RESET", 12, RED, Typeface.BOLD);
+        reset.setGravity(Gravity.CENTER);
+        reset.setBackground(roundRect(CARD, dp(14), Color.rgb(53, 53, 53), dp(1)));
+        reset.setClickable(true);
+        reset.setFocusable(true);
+        reset.setOnClickListener(v -> confirmReset());
+        LinearLayout.LayoutParams resetLp = new LinearLayout.LayoutParams(0, dp(50), 1.1f);
+        resetLp.leftMargin = dp(4);
+        bottom.addView(reset, resetLp);
+
+        root.addView(bottom, fullWrap());
+        return root;
+    }
+
+    private LinearLayout compactStatCard(String label) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER);
+        card.setBackground(roundRect(CARD, dp(16), Color.rgb(44, 44, 44), dp(1)));
+
+        TextView labelView = text(label, 12, MUTED, Typeface.BOLD);
+        labelView.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        labelLp.rightMargin = dp(8);
+        card.addView(labelView, labelLp);
+
+        TextView value = text("0", 36, WHITE, Typeface.BOLD);
+        value.setGravity(Gravity.CENTER);
+        card.addView(value, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        return card;
+    }
+
+    private TextView compactSmallButton(String label) {
+        TextView button = text(label, 14, WHITE, Typeface.BOLD);
+        button.setGravity(Gravity.CENTER);
+        button.setBackground(roundRect(CARD_2, dp(14), Color.rgb(58, 58, 58), dp(1)));
+        button.setClickable(true);
+        button.setFocusable(true);
+        return button;
+    }
+
+    private boolean isCompactDisplay() {
+        float density = getResources().getDisplayMetrics().density;
+        float widthDp = getResources().getDisplayMetrics().widthPixels / density;
+        float heightDp = getResources().getDisplayMetrics().heightPixels / density;
+        float minDp = Math.min(widthDp, heightDp);
+        float maxDp = Math.max(widthDp, heightDp);
+        float ratio = maxDp / Math.max(1f, minDp);
+
+        // Razr-style cover screens are close to square. The open phone is much taller.
+        return ratio < 1.45f && maxDp < 700f;
+    }
+
+    private void enableCompactFullscreen() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        View decor = getWindow().getDecorView();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                controller.setSystemBarsBehavior(
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        } else {
+            decor.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        }
+    }
+
     private LinearLayout statCard(String label) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -235,7 +410,7 @@ public class MainActivity extends Activity {
     private void saveAndRefresh(String status) {
         prefs.edit().putInt(KEY_SETS, sets).putInt(KEY_REPS, reps).apply();
         refresh();
-        statusText.setText(status);
+        if (statusText != null) statusText.setText(status);
     }
 
     private void refresh() {
