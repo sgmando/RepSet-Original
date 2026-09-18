@@ -190,11 +190,11 @@ public class MainActivity extends Activity {
         LinearLayout repsCard = compactStatCard("REPS");
         repsValue = (TextView) repsCard.getChildAt(1);
 
-        LinearLayout.LayoutParams leftStat = new LinearLayout.LayoutParams(0, dp(78), 1f);
+        LinearLayout.LayoutParams leftStat = new LinearLayout.LayoutParams(0, dp(80), 1f);
         leftStat.rightMargin = dp(5);
         stats.addView(setsCard, leftStat);
 
-        LinearLayout.LayoutParams rightStat = new LinearLayout.LayoutParams(0, dp(78), 1f);
+        LinearLayout.LayoutParams rightStat = new LinearLayout.LayoutParams(0, dp(80), 1f);
         rightStat.leftMargin = dp(5);
         stats.addView(repsCard, rightStat);
         root.addView(stats, fullWrap());
@@ -205,23 +205,23 @@ public class MainActivity extends Activity {
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setWeightSum(2f);
 
-        TextView setButton = bigButton("+  SET", RED_DARK, WHITE, dp(84), 18);
+        TextView setButton = bigButton("+  SET", RED_DARK, WHITE, dp(84), 20);
         setButton.setOnClickListener(v -> {
             sets++;
             saveAndRefresh("Set +1");
             haptic(v);
         });
-        LinearLayout.LayoutParams setLp = new LinearLayout.LayoutParams(0, dp(84), 0.8f);
+        LinearLayout.LayoutParams setLp = new LinearLayout.LayoutParams(0, dp(84), 1f);
         setLp.rightMargin = dp(5);
         topRow.addView(setButton, setLp);
 
-        TextView repButton = bigButton("+  REP", RED, WHITE, dp(84), 28);
+        TextView repButton = bigButton("+  REP", RED, WHITE, dp(84), 20);
         repButton.setOnClickListener(v -> {
             reps++;
             saveAndRefresh("Rep +1");
             haptic(v);
         });
-        LinearLayout.LayoutParams repLp = new LinearLayout.LayoutParams(0, dp(84), 1.2f);
+        LinearLayout.LayoutParams repLp = new LinearLayout.LayoutParams(0, dp(84), 1f);
         repLp.leftMargin = dp(5);
         topRow.addView(repButton, repLp);
         root.addView(topRow, fullWrap());
@@ -291,7 +291,7 @@ public class MainActivity extends Activity {
         labelLp.rightMargin = dp(8);
         card.addView(labelView, labelLp);
 
-        TextView value = text("0", 42, WHITE, Typeface.BOLD);
+        TextView value = text("0", 44, WHITE, Typeface.BOLD);
         value.setGravity(Gravity.CENTER);
         card.addView(value, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
